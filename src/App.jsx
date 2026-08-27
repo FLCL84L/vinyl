@@ -10,7 +10,14 @@ function App() {
   return (
     <div>
       <h1>My Music Library</h1>
-      <SongCard />
+      <SongCard
+        title="My First Song"
+        artist="My First Artist"
+      />
+      <SongCard
+        title="My Second Song"
+        artist="My Second Artist"
+      />
     </div>
   )
 }

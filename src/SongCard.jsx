@@ -1,10 +1,10 @@
-function SongCard() {
+function SongCard({title, artist}) {
     return(
         <div>
             <div>VINYL</div>
 
-            <h2>Song Title</h2>
-            <p>Artist Name</p>
+            <h2>{title}</h2>
+            <p>{artist}</p>
         </div>
     )
 }
