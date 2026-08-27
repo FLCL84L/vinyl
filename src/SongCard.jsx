@@ -1,7 +1,7 @@
 function SongCard({title, artist}) {
     return(
         <div>
-            <div>VINYL</div>
+            <img src="/vinyl.png" alt="" />
 
             <h2>{title}</h2>
             <p>{artist}</p>
