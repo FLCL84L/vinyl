@@ -1,23 +1,56 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-function SongCard({ song }) {
+function SongCard({
+  song,
+  isPlaying,
+  anotherSongPlaying,
+  onPlay,
+  onPause
+}) {
   const audioRef = useRef(null)
-  const sampleIntervalRef = useRef(null)
+  const previewTimeoutRef = useRef(null)
+  const [isHovered, setIsHovered] = useState(false)
 
   useEffect(() => {
     audioRef.current = new Audio(song.file)
 
-    return () => {
-      audioRef.current.pause()
-      audioRef.current = null
+    audioRef.current.addEventListener('ended', onPause)
 
-      if (sampleIntervalRef.current) {
-        clearInterval(sampleIntervalRef.current)
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+        audioRef.current.removeEventListener('ended', onPause)
+      }
+
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current)
       }
     }
-  }, [song.file])
+  }, [song.file, onPause])
 
-  function playSample() {
+  useEffect(() => {
+    const audio = audioRef.current
+
+    if (!audio) return
+
+    if (isPlaying) {
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current)
+        previewTimeoutRef.current = null
+      }
+
+      audio.currentTime = 0
+      audio.play().catch(() => {})
+    } else {
+      audio.pause()
+      audio.currentTime = 0
+    }
+  }, [isPlaying])
+
+  function startPreview() {
+    if (isPlaying || anotherSongPlaying) return
+
     const audio = audioRef.current
 
     if (!audio) return
@@ -25,13 +58,15 @@ function SongCard({ song }) {
     audio.currentTime = 0
     audio.play().catch(() => {})
 
-    sampleIntervalRef.current = setInterval(() => {
+    previewTimeoutRef.current = setTimeout(() => {
+      audio.pause()
       audio.currentTime = 0
-      audio.play().catch(() => {})
     }, 10000)
   }
 
-  function stopSample() {
+  function stopPreview() {
+    if (isPlaying || anotherSongPlaying) return
+
     const audio = audioRef.current
 
     if (!audio) return
@@ -39,23 +74,57 @@ function SongCard({ song }) {
     audio.pause()
     audio.currentTime = 0
 
-    if (sampleIntervalRef.current) {
-      clearInterval(sampleIntervalRef.current)
-      sampleIntervalRef.current = null
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current)
+      previewTimeoutRef.current = null
     }
   }
+
+  function handleMouseEnter() {
+    setIsHovered(true)
+    startPreview()
+  }
+
+  function handleMouseLeave() {
+    setIsHovered(false)
+    stopPreview()
+  }
+
+  function handleButtonClick(event) {
+    event.stopPropagation()
+
+    if (isPlaying) {
+      onPause()
+    } else {
+      onPlay()
+    }
+  }
+
+  const isDisabled = anotherSongPlaying
 
   return (
     <div className="song-card">
       <div
-        className="vinyl-hover-area"
-        onMouseEnter={playSample}
-        onMouseLeave={stopSample}
+        className={`vinyl-hover-area ${isPlaying ? 'playing' : ''} ${
+          isDisabled ? 'disabled' : ''
+        }`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         <img
           src="/vinyl.png"
           alt="Vinyl record"
         />
+
+        {(isHovered || isPlaying) && !isDisabled && (
+          <button
+            className="play-button"
+            onClick={handleButtonClick}
+            aria-label={isPlaying ? 'Pause song' : 'Play song'}
+          >
+            {isPlaying ? '❚❚' : '▶'}
+          </button>
+        )}
       </div>
 
       <h2>{song.title}</h2>

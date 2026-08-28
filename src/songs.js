@@ -40,6 +40,48 @@ const songs = [
       title: "Mania de Você",
       artist: "Rita Lee",
       file: "/songs/song7.mp3"
+    },
+    {
+      id: 8,
+      title: "Mesmo Que Seja Eu",
+      artist: "Erasmo Carlos",
+      file: "/songs/song8.mp3"
+    },
+    {
+      id: 9,
+      title: "Menina Veneno",
+      artist: "Ritchie  ",
+      file: "/songs/song9.mp3"
+    },
+    {
+      id: 10,
+      title: "É Preciso Dar um Jeito Meu Amigo",
+      artist: "Erasmo Carlos",
+      file: "/songs/song10.mp3"
+    },
+    {
+      id: 11,
+      title: "Eu Amo Você",
+      artist: "Tim Maia",
+      file: "/songs/song11.mp3"
+    },
+    {
+      id: 12,
+      title: "Sujeito de Sorte",
+      artist: "Belchior",
+      file: "/songs/song12.mp3"
+    },
+    {
+      id: 13,
+      title: "Não Sei Dancar",
+      artist: "Marina Lima",
+      file: "/songs/song13.mp3"
+    },
+    {
+      id: 14,
+      title: "Mania de Você",
+      artist: "Rita Lee",
+      file: "/songs/song14.mp3"
     }
   ]
 
