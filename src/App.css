@@ -14,6 +14,7 @@
   margin: 0 auto;
   border-radius: 50%;
   overflow: hidden;
+  transition: transform 0.3s ease;
 }
 
 .vinyl-hover-area img {
@@ -28,8 +29,23 @@
   pointer-events: none;
 }
 
+.vinyl-hover-area:hover {
+  transform: scale(1.15);
+}
+
 .vinyl-hover-area:hover img {
   filter: grayscale(0%);
+  animation: vinyl-spin 5s linear infinite;
+}
+
+@keyframes vinyl-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .song-card h2 {
