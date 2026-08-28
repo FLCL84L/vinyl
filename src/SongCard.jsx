@@ -1,10 +1,12 @@
 function SongCard({ song }) {
   return (
     <div className="song-card">
-      <img
-        src="/vinyl.png"
-        alt="Vinyl record"
-      />
+      <div className="vinyl-hover-area">
+        <img
+          src="/vinyl.png"
+          alt="Vinyl record"
+        />
+      </div>
 
       <h2>{song.title}</h2>
       <p>{song.artist}</p>
