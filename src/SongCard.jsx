@@ -5,29 +5,63 @@ function SongCard({
   isPlaying,
   anotherSongPlaying,
   onPlay,
-  onPause
+  onPause,
+  onTimeUpdate,
+  discRef
 }) {
   const audioRef = useRef(null)
   const previewTimeoutRef = useRef(null)
   const [isHovered, setIsHovered] = useState(false)
 
   useEffect(() => {
-    audioRef.current = new Audio(song.file)
+    const audio = new Audio(song.file)
 
-    audioRef.current.addEventListener('ended', onPause)
+    audioRef.current = audio
+
+    function handleEnded() {
+      onPause()
+    }
+
+    function handleTimeUpdate() {
+      onTimeUpdate(
+        audio.currentTime,
+        audio.duration
+      )
+    }
+
+    function handleLoadedMetadata() {
+      onTimeUpdate(
+        audio.currentTime,
+        audio.duration
+      )
+    }
+
+    audio.addEventListener('ended', handleEnded)
+    audio.addEventListener('timeupdate', handleTimeUpdate)
+    audio.addEventListener(
+      'loadedmetadata',
+      handleLoadedMetadata
+    )
 
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current.currentTime = 0
-        audioRef.current.removeEventListener('ended', onPause)
-      }
+      audio.pause()
+      audio.currentTime = 0
+
+      audio.removeEventListener('ended', handleEnded)
+      audio.removeEventListener(
+        'timeupdate',
+        handleTimeUpdate
+      )
+      audio.removeEventListener(
+        'loadedmetadata',
+        handleLoadedMetadata
+      )
 
       if (previewTimeoutRef.current) {
         clearTimeout(previewTimeoutRef.current)
       }
     }
-  }, [song.file, onPause])
+  }, [song.file, onPause, onTimeUpdate])
 
   useEffect(() => {
     const audio = audioRef.current
@@ -96,7 +130,7 @@ function SongCard({
     if (isPlaying) {
       onPause()
     } else {
-      onPlay()
+      onPlay(song.id)
     }
   }
 
@@ -105,9 +139,10 @@ function SongCard({
   return (
     <div className="song-card">
       <div
-        className={`vinyl-hover-area ${isPlaying ? 'playing' : ''} ${
-          isDisabled ? 'disabled' : ''
-        }`}
+        ref={discRef}
+        className={`vinyl-hover-area ${
+          isPlaying ? 'playing' : ''
+        } ${isDisabled ? 'disabled' : ''}`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -120,7 +155,9 @@ function SongCard({
           <button
             className="play-button"
             onClick={handleButtonClick}
-            aria-label={isPlaying ? 'Pause song' : 'Play song'}
+            aria-label={
+              isPlaying ? 'Pause song' : 'Play song'
+            }
           >
             {isPlaying ? '❚❚' : '▶'}
           </button>
