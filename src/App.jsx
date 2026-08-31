@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import SongCard from './SongCard.jsx'
 import songs from './songs.js'
 import './App.css'
@@ -9,22 +9,89 @@ function App() {
   const [duration, setDuration] = useState(0)
 
   const songRefs = useRef({})
+  const audioRef = useRef(null)
+
+  // Create one shared Audio object for the whole application.
+  useEffect(() => {
+    const audio = new Audio()
+    audio.preload = 'metadata'
+
+    audioRef.current = audio
+
+    function handleTimeUpdate() {
+      if (Number.isFinite(audio.duration)) {
+        setCurrentTime(audio.currentTime)
+        setDuration(audio.duration)
+      }
+    }
+
+    function handleLoadedMetadata() {
+      if (Number.isFinite(audio.duration)) {
+        setDuration(audio.duration)
+      }
+    }
+
+    function handleEnded() {
+      setPlayingSongId(null)
+      setCurrentTime(0)
+      setDuration(0)
+    }
+
+    audio.addEventListener('timeupdate', handleTimeUpdate)
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata)
+    audio.addEventListener('ended', handleEnded)
+
+    return () => {
+      audio.pause()
+      audio.src = ''
+
+      audio.removeEventListener('timeupdate', handleTimeUpdate)
+      audio.removeEventListener(
+        'loadedmetadata',
+        handleLoadedMetadata
+      )
+      audio.removeEventListener('ended', handleEnded)
+    }
+  }, [])
 
   const handlePlay = useCallback((songId) => {
+    const audio = audioRef.current
+    const song = songs.find((song) => song.id === songId)
+
+    if (!audio || !song) {
+      return
+    }
+
+    audio.pause()
+
+    audio.src = song.file
+    audio.currentTime = 0
+
     setPlayingSongId(songId)
     setCurrentTime(0)
     setDuration(0)
+
+    audio.play().catch((error) => {
+      console.error(
+        `Could not play "${song.title}":`,
+        error
+      )
+
+      setPlayingSongId(null)
+    })
   }, [])
 
   const handlePause = useCallback(() => {
+    const audio = audioRef.current
+
+    if (audio) {
+      audio.pause()
+      audio.currentTime = 0
+    }
+
     setPlayingSongId(null)
     setCurrentTime(0)
     setDuration(0)
-  }, [])
-
-  const handleTimeUpdate = useCallback((time, songDuration) => {
-    setCurrentTime(time)
-    setDuration(songDuration)
   }, [])
 
   function focusPlayingSong() {
@@ -56,9 +123,9 @@ function App() {
               playingSongId !== null &&
               playingSongId !== song.id
             }
+            audioRef={audioRef}
             onPlay={handlePlay}
             onPause={handlePause}
-            onTimeUpdate={handleTimeUpdate}
             discRef={(element) => {
               songRefs.current[song.id] = element
             }}
@@ -105,7 +172,9 @@ function formatTime(time) {
   const minutes = Math.floor(time / 60)
   const seconds = Math.floor(time % 60)
 
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`
+  return `${minutes}:${seconds
+    .toString()
+    .padStart(2, '0')}`
 }
 
 export default App

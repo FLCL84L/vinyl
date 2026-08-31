@@ -4,109 +4,78 @@ function SongCard({
   song,
   isPlaying,
   anotherSongPlaying,
+  audioRef,
   onPlay,
   onPause,
-  onTimeUpdate,
   discRef
 }) {
-  const audioRef = useRef(null)
   const previewTimeoutRef = useRef(null)
+  const previewingRef = useRef(false)
+
   const [isHovered, setIsHovered] = useState(false)
 
-  useEffect(() => {
-    const audio = new Audio(song.file)
-
-    audioRef.current = audio
-
-    function handleEnded() {
-      onPause()
-    }
-
-    function handleTimeUpdate() {
-      onTimeUpdate(
-        audio.currentTime,
-        audio.duration
-      )
-    }
-
-    function handleLoadedMetadata() {
-      onTimeUpdate(
-        audio.currentTime,
-        audio.duration
-      )
-    }
-
-    audio.addEventListener('ended', handleEnded)
-    audio.addEventListener('timeupdate', handleTimeUpdate)
-    audio.addEventListener(
-      'loadedmetadata',
-      handleLoadedMetadata
-    )
-
-    return () => {
-      audio.pause()
-      audio.currentTime = 0
-
-      audio.removeEventListener('ended', handleEnded)
-      audio.removeEventListener(
-        'timeupdate',
-        handleTimeUpdate
-      )
-      audio.removeEventListener(
-        'loadedmetadata',
-        handleLoadedMetadata
-      )
-
-      if (previewTimeoutRef.current) {
-        clearTimeout(previewTimeoutRef.current)
-      }
-    }
-  }, [song.file, onPause, onTimeUpdate])
-
-  useEffect(() => {
-    const audio = audioRef.current
-
-    if (!audio) return
-
-    if (isPlaying) {
-      if (previewTimeoutRef.current) {
-        clearTimeout(previewTimeoutRef.current)
-        previewTimeoutRef.current = null
-      }
-
-      audio.currentTime = 0
-      audio.play().catch(() => {})
-    } else {
-      audio.pause()
-      audio.currentTime = 0
-    }
-  }, [isPlaying])
-
   function startPreview() {
-    if (isPlaying || anotherSongPlaying) return
+    if (isPlaying || anotherSongPlaying) {
+      return
+    }
 
     const audio = audioRef.current
 
-    if (!audio) return
+    if (!audio) {
+      return
+    }
 
+    // Cancel any previous preview timer.
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current)
+      previewTimeoutRef.current = null
+    }
+
+    // Stop whatever the shared audio element was doing.
+    audio.pause()
+
+    // Load this song.
+    audio.src = song.file
     audio.currentTime = 0
-    audio.play().catch(() => {})
 
+    previewingRef.current = true
+
+    audio.play().catch((error) => {
+      console.error(
+        `Could not preview "${song.title}":`,
+        error
+      )
+
+      previewingRef.current = false
+    })
+
+    // Stop the preview after 10 seconds.
     previewTimeoutRef.current = setTimeout(() => {
-      audio.pause()
-      audio.currentTime = 0
+      if (previewingRef.current) {
+        audio.pause()
+        audio.currentTime = 0
+        previewingRef.current = false
+      }
+
+      previewTimeoutRef.current = null
     }, 10000)
   }
 
   function stopPreview() {
-    if (isPlaying || anotherSongPlaying) return
+    if (isPlaying || anotherSongPlaying) {
+      return
+    }
 
     const audio = audioRef.current
 
-    if (!audio) return
+    if (!audio || !previewingRef.current) {
+      return
+    }
 
     audio.pause()
     audio.currentTime = 0
+
+    previewingRef.current = false
 
     if (previewTimeoutRef.current) {
       clearTimeout(previewTimeoutRef.current)
@@ -129,10 +98,28 @@ function SongCard({
 
     if (isPlaying) {
       onPause()
-    } else {
-      onPlay(song.id)
+      return
     }
+
+    // Cancel the preview before starting normal playback.
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current)
+      previewTimeoutRef.current = null
+    }
+
+    previewingRef.current = false
+
+    onPlay(song.id)
   }
+
+  // Clean up the preview timer if this card is removed.
+  useEffect(() => {
+    return () => {
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const isDisabled = anotherSongPlaying
 
@@ -156,7 +143,9 @@ function SongCard({
             className="play-button"
             onClick={handleButtonClick}
             aria-label={
-              isPlaying ? 'Pause song' : 'Play song'
+              isPlaying
+                ? 'Pause song'
+                : 'Play song'
             }
           >
             {isPlaying ? '❚❚' : '▶'}

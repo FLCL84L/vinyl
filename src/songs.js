@@ -43,44 +43,44 @@ const songs = [
     },
     {
       id: 8,
-      title: "Mesmo Que Seja Eu",
-      artist: "Erasmo Carlos",
+      title: "Lança Perfume",
+      artist: "Rita Lee",
       file: "/songs/song8.mp3"
     },
     {
       id: 9,
-      title: "Menina Veneno",
-      artist: "Ritchie  ",
+      title: "Pra não dizer que não falei das flores",
+      artist: "Luiz Gonzaga",
       file: "/songs/song9.mp3"
     },
     {
       id: 10,
-      title: "É Preciso Dar um Jeito Meu Amigo",
-      artist: "Erasmo Carlos",
+      title: "João e Maria",
+      artist: "Chico Buarque",
       file: "/songs/song10.mp3"
     },
     {
       id: 11,
-      title: "Eu Amo Você",
-      artist: "Tim Maia",
+      title: "I Fall In Love Too Easily",
+      artist: "Chet Baker",
       file: "/songs/song11.mp3"
     },
     {
       id: 12,
-      title: "Sujeito de Sorte",
-      artist: "Belchior",
+      title: "Like a Man Possessed",
+      artist: "The Get Up Kids",
       file: "/songs/song12.mp3"
     },
     {
       id: 13,
-      title: "Não Sei Dancar",
-      artist: "Marina Lima",
+      title: "Tropicana",
+      artist: "Alceu Valença",
       file: "/songs/song13.mp3"
     },
     {
       id: 14,
-      title: "Mania de Você",
-      artist: "Rita Lee",
+      title: "O Mundo É Um Moinho",
+      artist: "Cartola",
       file: "/songs/song14.mp3"
     }
   ]
